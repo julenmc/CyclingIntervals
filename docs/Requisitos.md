@@ -1,4 +1,4 @@
-# Especifación de Requisitos Software
+# Especificación de Requisitos Software (SRS)
 ## Índice
 1. [Introducción](#1-introducción)
     1. [Propósito](#11-propósito)
@@ -44,7 +44,7 @@ La aplicación actúa como interfaz gráfica para algunos de los módulos de la 
 ![Imagen no disponible](images/CyclingIntervals_BlockDiagram.drawio.png)
 
 ### 2.2 Funciones del Producto
-* Cargar un archivo _.fit_ de una actividad ciclista.
+* El sistema carga un archivo _.fit_ de una actividad ciclista.
 * Análisis de la actividad:
     * Analizar la actividad para detectar las subidas más importantes que se encuentren en la ruta.
     * Analizar la actividad para detectar los intervalos de esfuerzo.
@@ -62,7 +62,7 @@ La aplicación actúa como interfaz gráfica para algunos de los módulos de la 
 Ciclistas y entrenadores con nivel técnico básico.
 
 ### 2.4. Restricciones
-* Desarrollado en .NET 8.0.
+* Desarrollado en .NET 8.0 con Avalonia MVVM.
 * Compatible únicamente con escritorio (Windows o macOS).
 
 ### 2.5. Suposiciones y dependencias
@@ -92,31 +92,39 @@ Se desarrollará una **interfaz con una única ventana**. La ventana estará div
 
 ### 3.2. Requisitos funcionales
 **Requisitos de análisis**:
-| ID | Descripción | Prioridad |
-| -- | ----------- | --------- |
-| RFA-01 | El sistema debe procesar los datos usando el módulo de análisis de<br>la biblioteca | Alta |
+| ID | Descripción | Prioridad | Criterio de aceptación |
+| -- | ----------- | --------- | ---------------------- |
+| RFA-01 | El sistema debe leer los datos usando el módulo de lectura de la biblioteca | Alta | La aplicación llama a los métodos del módulo de lectura y recibe un conjunto de datos que contenga los puntos geográficos, FC, potencia... |
+| RFA-02 | El sistema debe procesar los datos usando el módulo de análisis de la biblioteca | Alta | La aplicación llama a los métodos del módulo de análisis y recibe un conjunto de intervalos |
+
+> [!NOTE]
+> Dado que estos módulos no son parte de esta aplicación, sus criterios de aceptación son de respuesta por parte de los módulos, los criterios más estrictos están dentro de la validación de los módulos.
+
+**Requisitos de importación**:
+| ID | Descripción | Prioridad | Criterio de aceptación |
+| -- | ----------- | --------- | ---------------------- |
+| RFI-01 | El sistema debe permitir importar archivos _.fit_ desde un cuadro de diálogo estándar. Cualquier otro archivo devolvería un error.| Alta | Al seleccionar el archivo la aplicación comenzará con el proceso de lectura y análisis. Al intentar abrir un archivo con extensión distinta de .fit, la aplicación muestra un mensaje de error y no inicia el análisis. |
 
 **Requisitos de visualización gráfica**:
-| ID | Descripción | Prioridad |
-| -- | ----------- | --------- |
-| RFV-01 | El sistema debe mostrar la altimetría de la actividad en un gráfico de<br>altitud vs distancia. | Alta |
-| RFV-02 | El sistema debe mostrar la potencia de la actividad en un gráfico de<br>potencia vs distancia. | Alta |
-| RFV-03 | El sistema debe mostrar la FC de la actividad en un gráfico de FC vs<br>distancia. | Media |
-| RFV-04 | El sistema debe poder resaltar las subidas detectadas dentro de los<br>gráficos mostrados. Mostrando el inicio y final de la subida. | Media |
-| RFV-05 | El sistema debe poder resaltar los intervalos detectados dentro de los<br>gráficos mostrados. Mostrando el inicio y final del intervalo. | Media |
+| ID | Descripción | Prioridad | Criterio de aceptación |
+| -- | ----------- | --------- | ---------------------- |
+| RFV-01 | El sistema debe mostrar la altimetría de la actividad en un gráfico de altitud vs distancia. | Alta | Tras cargar un archivo válido, se muestra un gráfico con el eje X representando la distancia y el eje Y la altitud; los valores coinciden con los datos del archivo. |
+| RFV-02 | El sistema debe mostrar la potencia de la actividad en un gráfico de potencia vs distancia. | Alta | Tras cargar un archivo válido, se muestra un gráfico con el eje X (distancia) y el eje Y (potencia en W), con valores coherentes con los datos del archivo. |
+| RFV-03 | El sistema debe mostrar la FC de la actividad en un gráfico de FC vs distancia. | Media | Al cargar un archivo válido que contenga FC, se muestra el gráfico correspondiente con valores dentro del rango típico (40–220 bpm). |
+| RFV-04 | El sistema debe poder resaltar las subidas detectadas dentro de los gráficos mostrados. Mostrando el inicio y final de la subida. | Media | Al activar la opción de mostrar subidas, se dibujan segmentos coloreados o delimitados sobre todos los gráficos que coinciden con las subidas detectadas por el módulo de análisis. |
+| RFV-05 | El sistema debe poder resaltar los intervalos detectados dentro de los gráficos mostrados. Mostrando el inicio y final del intervalo. | Media | Al activar la opción de mostrar intervalos, se dibujan segmentos coloreados o delimitados sobre todos los gráficos que coinciden con los intervalos detectados. |
 
 **Requisitos de configuración**:
-| ID | Descripción | Prioridad |
-| -- | ----------- | --------- |
-| RFC-01 | El sistema debe permitir importar archivos _.fit_. Cualquier otro archivo<br>devolvería un error. | Alta |
-| RFC-02 | Se puede configurar el sistema para activar/desactivar la<br>visualización de las subidas e intervalos de forma independiente. | Baja |
-| RFC-03 | Se puede configurar el sistema para cambiar los límites utilizados<br>durante la búsqueda de intervalos de esfuerzo. | Media |
-| RFC-04 | Se pueden cambiar las zonas de potencia del ciclista a analizar. | Alta |
+| ID | Descripción | Prioridad | Criterio de aceptación |
+| -- | ----------- | --------- | ---------------------- |
+| RFC-01 | Se puede configurar el sistema para activar/desactivar la visualización de las subidas e intervalos de forma independiente. | Baja | Al desactivar cualquiera de las opciones de visualización en el panel de configuración, las correspondientes capas desaparecen de los gráficos en tiempo real. |
+| RFC-02 | Se puede configurar el sistema para cambiar los límites utilizados durante la búsqueda de intervalos de esfuerzo. | Media | Al modificar el umbral y reanalizar la sesión, el número o duración de los intervalos detectados cambia conforme a los nuevos parámetros. |
+| RFC-03 | Se pueden cambiar las zonas de potencia del ciclista a analizar. | Alta | Al modificar las zonas y reanalizar la sesión, el número o duración de los intervalos detectados cambia conforme a los nuevos parámetros. |
 
 ### 3.3. Requisitos de rendimiento
-| ID | Descripción | Prioridad |
-| -- | ----------- | --------- |
-| RR-01 | El análisis de un archivo de 2h no debe superar los 10 segundos | Alta |
+| ID | Descripción | Prioridad | Criterio de aceptación |
+| -- | ----------- | --------- | ---------------------- |
+| RR-01 | El análisis de un archivo de 2h no debe superar los 10 segundos | Alta | Se mide el tiempo desde la carga hasta la visualización completa; el proceso no supera los 10 s en un equipo con especificaciones mínimas definidas. |
 
 ### 3.4. Restricciones de Diseño
 * Uso obligatorio del patrón MVVM.
