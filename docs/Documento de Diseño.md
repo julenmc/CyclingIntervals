@@ -54,7 +54,7 @@ El repositorio contará con 3 instancias del modelo de datos graficables (GraphD
 ### 3.3. Design Rationale
 A continuación, se listan algunas de las dudas que se han tenido durante el diseño y su resolución:
 * Componentes DataRepository y AnalyzeService: dado que se usa el patrón MVVM, se ha decidido crear un repositorio con variables observables a las que accederán los _ViewModel_. En paralelo, para quitar responsabilidades al repositorio y mantener una arquitectura modular, se crea el servicio AnalyzeService, que se encargará de comunicarse con el Core y de la conversión de datos para introducirlos en los modelos del sistema que se encuentran instanciados en el repositorio.
-* Se descompone la clase AnalyzeService para quitar carga y facilitar el testeo: tres clases diferentes que se encargan de crear instancias de los modelos del sistema a partir los datos obtenidos del Core a través de lectura/análisis.
+* Se descompone la clase AnalyzeService para quitar carga y facilitar el testeo: se separa un servicio que se encarga de crear instancias de los modelos del sistema a partir los datos obtenidos del Core a través de lectura/análisis.
 
 ## 4. Diseño de Datos
 ### 4.1. Descripción de Datos
