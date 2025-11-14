@@ -1,6 +1,97 @@
-﻿namespace CyclingIntervalsGui.ViewModels;
+﻿using CyclingIntervalsGui.Repositories;
+using CyclingIntervalsGui.Services;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CyclingIntervalsGui.Models;
+using System.ComponentModel;
+using CyclingTrainer.SessionAnalyzer.Models;
+using CommunityToolkit.Mvvm.Input;
 
+namespace CyclingIntervalsGui.ViewModels;
+
+/// <summary>
+/// ViewModel principal que gestiona la sincronización entre el repositorio y la vista.
+/// Utiliza propiedades observables para mantener la vista actualizada automáticamente.
+/// </summary>
 public partial class MainWindowViewModel : ViewModelBase
 {
-    public string Greeting { get; } = "Welcome to Avalonia!";
+    private DataRepository _repository;
+    private AnalyzeService _analyzer;
+
+    [ObservableProperty]
+    private GraphData? _altitudeData;
+
+    [ObservableProperty]
+    private GraphData? _powerData;
+
+    [ObservableProperty]
+    private GraphData? _hrData;
+
+    [ObservableProperty]
+    private List<ClimbData>? _climbsList;
+
+    [ObservableProperty]
+    private List<Interval>? _intervalsList;
+
+    [ObservableProperty]
+    private string? _filePath;
+
+    [ObservableProperty]
+    private bool _isLoading;
+
+    public MainWindowViewModel()
+    {
+        _repository = new DataRepository();
+        _analyzer = new AnalyzeService(_repository);
+
+        // Suscribirse a cambios del repositorio para mantener el ViewModel sincronizado
+        _repository.PropertyChanged += OnRepositoryPropertyChanged;
+
+        // Cargar archivo por defecto
+        FilePath = @"Resources/19622171318_ACTIVITY.fit";
+    }
+
+    /// <summary>
+    /// Maneja cambios en el repositorio y actualiza las propiedades observables del ViewModel.
+    /// Esto asegura que los cambios en los datos se reflejen automáticamente en la vista.
+    /// </summary>
+    private void OnRepositoryPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        switch (e.PropertyName)
+        {
+            case nameof(DataRepository.AltitudeData):
+                AltitudeData = _repository.AltitudeData;
+                break;
+            case nameof(DataRepository.PowerData):
+                PowerData = _repository.PowerData;
+                break;
+            case nameof(DataRepository.HrData):
+                HrData = _repository.HrData;
+                break;
+            case nameof(DataRepository.ClimbsList):
+                ClimbsList = _repository.ClimbsList;
+                break;
+            case nameof(DataRepository.IntervalsList):
+                IntervalsList = _repository.IntervalsList;
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Cambia la ruta del archivo a analizar. Desencadena automáticamente:
+    /// 1. Lectura del archivo
+    /// 2. Análisis de datos
+    /// 3. Actualización de propiedades observables
+    /// 4. Actualización automática de la vista via bindings
+    /// </summary>
+    public void ChangeFilePath(string filePath)
+    {
+        FilePath = filePath;
+        _repository.FilePath = filePath;
+    }
+
+    [RelayCommand]
+    private void ReloadFile()
+    {
+        _repository.FilePath = FilePath;
+    }
 }

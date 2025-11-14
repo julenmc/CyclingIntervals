@@ -3,18 +3,39 @@
         xmlns:vm="using:CyclingIntervalsGui.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:avaPlot="clr-namespace:ScottPlot.Avalonia;assembly=ScottPlot.Avalonia"
+        xmlns:behaviors="using:CyclingIntervalsGui.Behaviors"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="CyclingIntervalsGui.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
-        Icon="/Assets/avalonia-logo.ico"
         Title="CyclingIntervalsGui">
 
     <Design.DataContext>
-        <!-- This only sets the DataContext for the previewer in an IDE,
-             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+        <!-- DataContext para el previewer en el IDE -->
         <vm:MainWindowViewModel/>
     </Design.DataContext>
 
-    <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+    <!-- 
+        Estructura MVVM limpia:
+        - El ViewModel (MainWindowViewModel) contiene toda la lógica y datos observables
+        - El Behavior (PlotUpdateBehavior) reacciona a cambios en AltitudeData
+        - La Vista (este XAML) solo define la presentación
+        - No hay code-behind lógico, solo inicialización de Avalonia
+    -->
+    <Grid RowDefinitions="Auto,*">
+        <!-- Panel de información -->
+        <StackPanel Grid.Row="0" Spacing="10" Orientation="Horizontal">
+            <TextBlock Text="Archivo:" VerticalAlignment="Center" FontWeight="Bold" Margin="10,10,10,10"/>
+            <TextBlock Text="{Binding FilePath}" VerticalAlignment="Center" Foreground="DarkGray" Margin="0,10,10,10"/>
+        </StackPanel>
+        <Button Command="{Binding ReloadFileCommand}">
+            <PathIcon Data="{DynamicResource AcceptIconData}"
+                        Foreground="Green" />
+        </Button>
+
+        <!-- Gráfico que se actualiza automáticamente -->
+        <avaPlot:AvaPlot Name="PlotView" Grid.Row="1" behaviors:PlotUpdateBehavior.DataSource="{Binding AltitudeData}"/>
+    </Grid>
 
 </Window>
+

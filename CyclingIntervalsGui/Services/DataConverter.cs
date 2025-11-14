@@ -46,7 +46,7 @@ public class DataConverter
         foreach (FitnessData point in _points)
         {
             float? value = selector(point);
-            if (value == null) throw new ArgumentException(nameof(_points), $"Null value at point {point.Timestamp.GetDateTime().TimeOfDay}");
+            if (value == null) continue; //throw new ArgumentException(nameof(_points), $"Null value at point {point.Timestamp.GetDateTime().TimeOfDay}");
             ret.Values.Add(new GraphData.SingularGraphData
             {
                 Date = point.Timestamp.GetDateTime(),
