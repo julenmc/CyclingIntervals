@@ -37,13 +37,20 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private string? _filePath;
 
+    public string? FileName => string.IsNullOrEmpty(FilePath)
+        ? null
+        : Path.GetFileName(FilePath);
+
     [ObservableProperty]
     private bool _isLoading;
+
+    public ZonesViewModel ZonesViewModel { get; }
 
     public MainWindowViewModel()
     {
         _repository = new DataRepository();
         _analyzer = new AnalyzeService(_repository);
+        ZonesViewModel = new ZonesViewModel(_repository);
 
         // Suscribirse a cambios del repositorio para mantener el ViewModel sincronizado
         _repository.PropertyChanged += OnRepositoryPropertyChanged;
@@ -113,5 +120,10 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             ChangeFilePath(selectedPath);
         }
+    }
+    
+    partial void OnFilePathChanged(string? value)
+    {
+        OnPropertyChanged(nameof(FileName));
     }
 }

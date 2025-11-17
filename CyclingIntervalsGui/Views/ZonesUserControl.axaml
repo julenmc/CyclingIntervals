@@ -1,0 +1,46 @@
+<UserControl xmlns="https://github.com/avaloniaui"      
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        x:Class="CyclingIntervalsGui.Views.ZonesUserControl"
+        xmlns:vm="clr-namespace:CyclingIntervalsGui.ViewModels"
+        xmlns:m="clr-namespace:CyclingTrainer.Core.Models;assembly=CyclingTrainer.Core"
+        x:DataType="vm:ZonesViewModel">
+
+    <UserControl.DataContext>
+        <!-- <vm:ZonesViewModel/> -->
+    </UserControl.DataContext>
+
+    <StackPanel Spacing="5" Orientation="Vertical">
+        <TextBlock Text="Zonas:" 
+               FontWeight="Bold" 
+               Margin="10" />
+
+        <ItemsControl ItemsSource="{Binding Zones}">
+            <ItemsControl.ItemTemplate>
+                <!-- CAMBIO 2: Añadir x:DataType para el DataTemplate -->
+                <DataTemplate DataType="m:Zone" x:DataType="m:Zone">
+                    <Grid ColumnDefinitions="Auto,*,*"
+                          Margin="5">
+                        <TextBlock Text="{Binding Id}"
+                                   Grid.Column="0"
+                                   VerticalAlignment="Center"
+                                   Margin="10" />
+                        <TextBox Text="{Binding LowLimit}"
+                                 Grid.Column="1"
+                                 Margin="2" />
+                        <TextBox Text="{Binding HighLimit}"
+                                 Grid.Column="2"
+                                 Margin="2" />
+                    </Grid>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        
+        <Button HorizontalAlignment="Center" 
+                Command="{Binding SaveZonesCommand}">
+            <PathIcon Data="{DynamicResource AcceptIconData}"
+                      Foreground="Green" />
+        </Button>
+    </StackPanel>
+</UserControl>

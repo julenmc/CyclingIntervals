@@ -5,6 +5,7 @@ using ScottPlot;
 using ScottPlot.Avalonia;
 using AvaloniaColor = Avalonia.Media.Color;
 using AvaloniaColors = Avalonia.Media.Colors;
+using NLog;
 
 namespace CyclingIntervalsGui.Behaviors;
 
@@ -15,6 +16,7 @@ namespace CyclingIntervalsGui.Behaviors;
 /// </summary>
 public class PlotUpdateBehavior
 {
+    private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
     public static readonly AttachedProperty<GraphData?> DataSourceProperty =
         AvaloniaProperty.RegisterAttached<PlotUpdateBehavior, AvaPlot, GraphData?>(
             "DataSource",
@@ -90,6 +92,7 @@ public class PlotUpdateBehavior
             return;
         }
 
+        Logger.Info($"Updating plot {plot.Name}");
         try
         {
             plot.Plot.Clear();
@@ -136,7 +139,7 @@ public class PlotUpdateBehavior
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error actualizando el gráfico: {ex.Message}");
+            Logger.Error($"Error actualizando el gráfico: {ex.Message}");
         }
     }
 }

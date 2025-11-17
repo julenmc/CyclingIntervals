@@ -4,11 +4,14 @@ using CyclingTrainer.SessionReader.Models;
 using CyclingTrainer.SessionReader.Services;
 using CyclingTrainer.SessionAnalyzer.Models;
 using CyclingTrainer.SessionAnalyzer.Services.Intervals;
+using CyclingTrainer.Core.Models;
 
 namespace CyclingIntervalsGui.Services;
 
 public class AnalyzeService
 {
+    private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+
     private readonly DataRepository _repository;
     private SessionContainer? _sessionContainer;
     private DataConverter? _converter;
@@ -16,16 +19,29 @@ public class AnalyzeService
     public AnalyzeService(DataRepository repository)
     {
         _repository = repository;
-        _repository.PropertyChanged += FilePathChanged;
+        _repository.PropertyChanged += OnChange;
     }
 
-    private void FilePathChanged(object? sender, PropertyChangedEventArgs e)
+    private void OnChange(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(DataRepository.FilePath))
+        try
         {
-            ReadActivity();
+            if (e.PropertyName == nameof(DataRepository.FilePath))
+            {
+                Logger.Debug("File path change detected");
+                ReadActivity();
 
-            AnalyzeActivity();
+                AnalyzeActivity();
+            }
+            else if (e.PropertyName == nameof(DataRepository.Configuration))
+            {
+                Logger.Info("Configuration change detected");
+                AnalyzeActivity();
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Warn($"Error on event: {ex.Message}");
         }
     }
 
@@ -55,6 +71,10 @@ public class AnalyzeService
     /// </summary>
     private void AnalyzeActivity()
     {
+        if (_repository.FilePath == null || !File.Exists(_repository.FilePath))
+        {
+            throw new ArgumentException(nameof(_repository.FilePath), "Invalid file path!");
+        }
         if (_sessionContainer == null || _converter == null)
         {
             throw new ArgumentException("File wasn't read succesfully. Can't analyze the activity");
@@ -64,7 +84,9 @@ public class AnalyzeService
             throw new ArgumentException(nameof(_repository.Configuration), "Invalid configuration");
         }
         // Analyze
-        IntervalsService intervalService = new IntervalsService(_sessionContainer.FitnessDataContainer.FitnessData, _repository.Configuration.Zones, _repository.Configuration.Thresholds);
+        List<Zone> zones = new List<Zone>();
+        foreach (Zone zone in _repository.Configuration.Zones) zones.Add(zone);
+        IntervalsService intervalService = new IntervalsService(_sessionContainer.FitnessDataContainer.FitnessData, zones, _repository.Configuration.Thresholds);
         IntervalContainer intervalContainer = intervalService.Search();
         // Convert and save
         _repository.ClimbsList = _converter.Climbs;

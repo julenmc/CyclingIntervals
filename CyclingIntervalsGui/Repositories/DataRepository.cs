@@ -26,7 +26,7 @@ public partial class DataRepository : ObservableObject
     private List<Interval>? _intervalsList;
 
     [ObservableProperty]
-    private AnalyzeConfig? _configuration;
+    private AnalyzeConfig _configuration;
 
     [ObservableProperty]
     private UIConfiguration? _uiConfiguration;
@@ -82,5 +82,21 @@ public partial class DataRepository : ObservableObject
                 },
             }
         };
+    }
+
+    public AnalyzeConfig CopyConfig()
+    {
+        AnalyzeConfig config = new AnalyzeConfig();
+        config.Zones = new List<CyclingTrainer.Core.Models.Zone>();
+        foreach (CyclingTrainer.Core.Models.Zone zone in Configuration.Zones)
+        {
+            config.Zones.Add(zone);
+        }
+
+        config.Thresholds.Short = Configuration.Thresholds.Short.Copy();
+        config.Thresholds.Medium = Configuration.Thresholds.Medium.Copy();
+        config.Thresholds.Long = Configuration.Thresholds.Long.Copy();
+
+        return config;
     }
 }
