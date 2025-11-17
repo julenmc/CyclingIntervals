@@ -16,6 +16,15 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        
+        // Cuando la ventana esté cargada, pasar la referencia al ViewModel
+        this.Loaded += (s, e) =>
+        {
+            if (this.DataContext is MainWindowViewModel viewModel)
+            {
+                viewModel.SetMainWindow(this);
+            }
+        };
     }
 
     private void InitializeComponent()

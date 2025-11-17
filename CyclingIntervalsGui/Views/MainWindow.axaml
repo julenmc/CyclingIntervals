@@ -15,26 +15,66 @@
         <vm:MainWindowViewModel/>
     </Design.DataContext>
 
-    <!-- 
-        Estructura MVVM limpia:
-        - El ViewModel (MainWindowViewModel) contiene toda la lógica y datos observables
-        - El Behavior (PlotUpdateBehavior) reacciona a cambios en AltitudeData
-        - La Vista (este XAML) solo define la presentación
-        - No hay code-behind lógico, solo inicialización de Avalonia
-    -->
-    <Grid RowDefinitions="Auto,*">
-        <!-- Panel de información -->
-        <StackPanel Grid.Row="0" Spacing="10" Orientation="Horizontal">
-            <TextBlock Text="Archivo:" VerticalAlignment="Center" FontWeight="Bold" Margin="10,10,10,10"/>
-            <TextBlock Text="{Binding FilePath}" VerticalAlignment="Center" Foreground="DarkGray" Margin="0,10,10,10"/>
-        </StackPanel>
-        <Button Command="{Binding ReloadFileCommand}">
-            <PathIcon Data="{DynamicResource AcceptIconData}"
-                        Foreground="Green" />
-        </Button>
+    <Grid ColumnDefinitions="3*,*">
+        <!-- Graphs with synchronized zoom -->
+        <Grid Grid.Column="0" RowDefinitions="*,*,*">
+            <!-- Altitude Plot (Red) -->
+            <avaPlot:AvaPlot Name="AltitudePlot" 
+                            Grid.Row="0" 
+                            behaviors:PlotUpdateBehavior.DataSource="{Binding AltitudeData}"
+                            behaviors:PlotUpdateBehavior.LineColor="Black"
+                            behaviors:SyncZoomBehavior.IsSynced="True"/>
+            
+            <!-- Power Plot (Blue) -->
+            <avaPlot:AvaPlot Name="PowerPlot" 
+                            Grid.Row="1" 
+                            behaviors:PlotUpdateBehavior.DataSource="{Binding PowerData}"
+                            behaviors:PlotUpdateBehavior.LineColor="DodgerBlue"
+                            behaviors:SyncZoomBehavior.IsSynced="True"/>
+            
+            <!-- Heart Rate Plot (Green) -->
+            <avaPlot:AvaPlot Name="HrPlot" 
+                            Grid.Row="2" 
+                            behaviors:PlotUpdateBehavior.DataSource="{Binding HrData}"
+                            behaviors:PlotUpdateBehavior.LineColor="Red"
+                            behaviors:SyncZoomBehavior.IsSynced="True"/>
+        </Grid>
 
-        <!-- Gráfico que se actualiza automáticamente -->
-        <avaPlot:AvaPlot Name="PlotView" Grid.Row="1" behaviors:PlotUpdateBehavior.DataSource="{Binding AltitudeData}"/>
+        <!-- Configuration grid -->
+        <ScrollViewer Grid.Column="1"> 
+            <Grid RowDefinitions="Auto,Auto,Auto,Auto">
+                <!-- File -->
+                <Grid Grid.Row="0" RowDefinitions="Auto,*">
+                    <StackPanel Grid.Row="0" Spacing="10" Orientation="Horizontal">
+                        <TextBlock Text="Archivo:" VerticalAlignment="Center" FontWeight="Bold" Margin="10,10,10,10"/>
+                        <TextBlock Text="{Binding FilePath}" VerticalAlignment="Center" Foreground="DarkGray" Margin="0,10,10,10"/>
+                    </StackPanel>
+                    <Button Grid.Row="1" Command="{Binding OpenFileCommand}">
+                        <PathIcon Data="{DynamicResource AcceptIconData}"
+                                    Foreground="Green" />
+                    </Button>
+                </Grid>
+                <!-- Visualization -->
+                <Grid Grid.Row="1" RowDefinitions="Auto,*">
+                    <StackPanel Grid.Row="0" Spacing="10" Orientation="Horizontal">
+                        <TextBlock Text="Mostrar:" VerticalAlignment="Center" FontWeight="Bold" Margin="10,10,10,10"/>
+                    </StackPanel>
+                </Grid>
+                <!-- Thresholds -->
+                <Grid Grid.Row="2" RowDefinitions="Auto,*">
+                    <StackPanel Grid.Row="0" Spacing="10" Orientation="Horizontal">
+                        <TextBlock Text="Límites:" VerticalAlignment="Center" FontWeight="Bold" Margin="10,10,10,10"/>
+                    </StackPanel>
+                </Grid>
+                <!-- Zones -->
+
+                <Grid Grid.Row="3" RowDefinitions="Auto,*">
+                    <StackPanel Grid.Row="0" Spacing="10" Orientation="Horizontal">
+                        <TextBlock Text="Zonas:" VerticalAlignment="Center" FontWeight="Bold" Margin="10,10,10,10"/>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+        </ScrollViewer>
     </Grid>
 
 </Window>

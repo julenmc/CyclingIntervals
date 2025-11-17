@@ -5,6 +5,7 @@ using CyclingIntervalsGui.Models;
 using System.ComponentModel;
 using CyclingTrainer.SessionAnalyzer.Models;
 using CommunityToolkit.Mvvm.Input;
+using Avalonia.Controls;
 
 namespace CyclingIntervalsGui.ViewModels;
 
@@ -14,8 +15,9 @@ namespace CyclingIntervalsGui.ViewModels;
 /// </summary>
 public partial class MainWindowViewModel : ViewModelBase
 {
-    private DataRepository _repository;
-    private AnalyzeService _analyzer;
+    private readonly DataRepository _repository;
+    private readonly AnalyzeService _analyzer;
+    private Window? _mainWindow;
 
     [ObservableProperty]
     private GraphData? _altitudeData;
@@ -45,9 +47,15 @@ public partial class MainWindowViewModel : ViewModelBase
 
         // Suscribirse a cambios del repositorio para mantener el ViewModel sincronizado
         _repository.PropertyChanged += OnRepositoryPropertyChanged;
+    }
 
-        // Cargar archivo por defecto
-        FilePath = @"Resources/19622171318_ACTIVITY.fit";
+    /// <summary>
+    /// Inicializa el FileManager con la ventana principal.
+    /// Debe llamarse desde el code-behind después de que la ventana esté cargada.
+    /// </summary>
+    public void SetMainWindow(Window mainWindow)
+    {
+        _mainWindow = mainWindow;
     }
 
     /// <summary>
@@ -90,8 +98,20 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void ReloadFile()
+    private async Task OpenFile()
     {
-        _repository.FilePath = FilePath;
+        if (_mainWindow == null)
+        {
+            System.Diagnostics.Debug.WriteLine("MainWindow no inicializado");
+            return;
+        }
+
+        var fileManager = new FileManager(_mainWindow);
+        var selectedPath = await fileManager.PickFileAsync();
+
+        if (!string.IsNullOrEmpty(selectedPath))
+        {
+            ChangeFilePath(selectedPath);
+        }
     }
 }
