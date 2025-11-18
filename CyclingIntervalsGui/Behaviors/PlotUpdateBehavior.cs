@@ -1,11 +1,10 @@
 using Avalonia;
-using Avalonia.Media;
 using CyclingIntervalsGui.Models;
-using ScottPlot;
 using ScottPlot.Avalonia;
 using AvaloniaColor = Avalonia.Media.Color;
 using AvaloniaColors = Avalonia.Media.Colors;
 using NLog;
+using CyclingTrainer.SessionAnalyzer.Models;
 
 namespace CyclingIntervalsGui.Behaviors;
 
@@ -17,9 +16,28 @@ namespace CyclingIntervalsGui.Behaviors;
 public class PlotUpdateBehavior
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
     public static readonly AttachedProperty<GraphData?> DataSourceProperty =
         AvaloniaProperty.RegisterAttached<PlotUpdateBehavior, AvaPlot, GraphData?>(
             "DataSource",
+            null,
+            false);
+
+    public static readonly AttachedProperty<List<ClimbData>?> ClimbSourceProperty =
+        AvaloniaProperty.RegisterAttached<PlotUpdateBehavior, AvaPlot, List<ClimbData>?>(
+            "ClimbSource",
+            null,
+            false);
+
+    public static readonly AttachedProperty<List<Interval>?> IntervalSourceProperty =
+        AvaloniaProperty.RegisterAttached<PlotUpdateBehavior, AvaPlot, List<Interval>?>(
+            "IntervalSource",
+            null,
+            false);
+
+    public static readonly AttachedProperty<UIConfiguration?> UiConfig =
+        AvaloniaProperty.RegisterAttached<PlotUpdateBehavior, AvaPlot, UIConfiguration?>(
+            "PlotConfig",
             null,
             false);
 
@@ -29,13 +47,33 @@ public class PlotUpdateBehavior
             AvaloniaColors.Blue,
             false);
 
+    public static readonly AttachedProperty<bool> ShowClimbsProperty =
+        AvaloniaProperty.RegisterAttached<PlotUpdateBehavior, AvaPlot, bool>(
+            "ShowClimbs",
+            true,
+            false);
+
+    public static readonly AttachedProperty<bool> ShowIntervalsProperty =
+        AvaloniaProperty.RegisterAttached<PlotUpdateBehavior, AvaPlot, bool>(
+            "ShowIntervals",
+            true,
+            false);
+
     // Diccionario para almacenar los límites originales de cada gráfico
     private static readonly Dictionary<AvaPlot, (double minX, double maxX, double minY, double maxY)> _originalLimits = new();
+    
+    // Diccionario para almacenar los spans de cada gráfico
+    private static readonly Dictionary<AvaPlot, List<ScottPlot.Plottables.HorizontalSpan>> _climbSpans = new();
+    private static readonly Dictionary<AvaPlot, List<ScottPlot.Plottables.HorizontalSpan>> _intervalSpans = new();
 
     static PlotUpdateBehavior()
     {
         DataSourceProperty.Changed.AddClassHandler<AvaPlot>((plot, e) => OnDataSourceChanged(plot, e));
+        ClimbSourceProperty.Changed.AddClassHandler<AvaPlot>((plot, e) => OnClimbsChanged(plot, e));
+        IntervalSourceProperty.Changed.AddClassHandler<AvaPlot>((plot, e) => OnIntervalsChanged(plot, e));
         LineColorProperty.Changed.AddClassHandler<AvaPlot>((plot, e) => OnColorChanged(plot, e));
+        ShowClimbsProperty.Changed.AddClassHandler<AvaPlot>((plot, e) => OnShowClimbsChanged(plot, e));
+        ShowIntervalsProperty.Changed.AddClassHandler<AvaPlot>((plot, e) => OnShowIntervalsChanged(plot, e));
     }
 
     public static GraphData? GetDataSource(AvaPlot plot)
@@ -43,9 +81,39 @@ public class PlotUpdateBehavior
         return plot.GetValue(DataSourceProperty);
     }
 
+    public static List<ClimbData>? GetClimbSource(AvaPlot plot)
+    {
+        return plot.GetValue(ClimbSourceProperty);
+    }
+
+    public static void SetClimbSource(AvaPlot plot, List<ClimbData>? value)
+    {
+        plot.SetValue(ClimbSourceProperty, value);
+    }
+
+    public static List<Interval>? GetIntervalSource(AvaPlot plot)
+    {
+        return plot.GetValue(IntervalSourceProperty);
+    }
+
+    public static void SetIntervalSource(AvaPlot plot, List<Interval>? value)
+    {
+        plot.SetValue(IntervalSourceProperty, value);
+    }
+
     public static void SetDataSource(AvaPlot plot, GraphData? value)
     {
         plot.SetValue(DataSourceProperty, value);
+    }
+
+    public static UIConfiguration? GetPlotConfig(AvaPlot plot)
+    {
+        return plot.GetValue(UiConfig);
+    }
+
+    public static void SetPlotConfig(AvaPlot plot, UIConfiguration? value)
+    {
+        plot.SetValue(UiConfig, value);
     }
 
     public static AvaloniaColor GetLineColor(AvaPlot plot)
@@ -56,6 +124,26 @@ public class PlotUpdateBehavior
     public static void SetLineColor(AvaPlot plot, AvaloniaColor value)
     {
         plot.SetValue(LineColorProperty, value);
+    }
+
+    public static bool GetShowClimbs(AvaPlot plot)
+    {
+        return plot.GetValue(ShowClimbsProperty);
+    }
+
+    public static void SetShowClimbs(AvaPlot plot, bool value)
+    {
+        plot.SetValue(ShowClimbsProperty, value);
+    }
+
+    public static bool GetShowIntervals(AvaPlot plot)
+    {
+        return plot.GetValue(ShowIntervalsProperty);
+    }
+
+    public static void SetShowIntervals(AvaPlot plot, bool value)
+    {
+        plot.SetValue(ShowIntervalsProperty, value);
     }
 
     public static (double minX, double maxX, double minY, double maxY)? GetOriginalLimits(AvaPlot plot)
@@ -76,6 +164,16 @@ public class PlotUpdateBehavior
         }
     }
 
+    private static void OnClimbsChanged(AvaPlot plot, AvaloniaPropertyChangedEventArgs e)
+    {
+        UpdateClimbHighlight(plot);
+    }
+
+    private static void OnIntervalsChanged(AvaPlot plot, AvaloniaPropertyChangedEventArgs e)
+    {
+        UpdateIntervalHighlight(plot);
+    }
+
     private static void OnColorChanged(AvaPlot plot, AvaloniaPropertyChangedEventArgs e)
     {
         var graphData = GetDataSource(plot);
@@ -83,6 +181,16 @@ public class PlotUpdateBehavior
         {
             UpdatePlot(plot, graphData, GetLineColor(plot));
         }
+    }
+
+    private static void OnShowClimbsChanged(AvaPlot plot, AvaloniaPropertyChangedEventArgs e)
+    {
+        UpdateClimbHighlight(plot);
+    }
+
+    private static void OnShowIntervalsChanged(AvaPlot plot, AvaloniaPropertyChangedEventArgs e)
+    {
+        UpdateIntervalHighlight(plot);
     }
 
     public static void UpdatePlot(AvaPlot plot, GraphData? graphData, AvaloniaColor lineColor)
@@ -96,6 +204,9 @@ public class PlotUpdateBehavior
         try
         {
             plot.Plot.Clear();
+            
+            // Limpiar los diccionarios de spans al hacer Clear
+            ClearSpans(plot);
 
             double[] xs = graphData.Values.Select(d => d.Date.ToOADate()).ToArray();
             double[] ys = graphData.Values.Select(d => (double)d.Value).ToArray();
@@ -142,7 +253,144 @@ public class PlotUpdateBehavior
             Logger.Error($"Error actualizando el gráfico: {ex.Message}");
         }
     }
+
+    private static void UpdateClimbHighlight(AvaPlot plot)
+    {
+        if (plot?.Plot == null)
+        {
+            return;
+        }
+
+        // Limpiar spans existentes de climbs
+        ClearClimbSpans(plot);
+
+        var climbs = GetClimbSource(plot);
+        var showClimbs = GetShowClimbs(plot);
+        var plotColor = GetLineColor(plot);
+        var highlightColor = new ScottPlot.Color(plotColor.R, plotColor.G, plotColor.B, plotColor.A);
+
+        if (!showClimbs || climbs == null || climbs.Count == 0)
+        {
+            plot.Refresh();
+            return;
+        }
+
+        Logger.Debug($"Updating {climbs.Count} climb highlights");
+
+        foreach (ClimbData climb in climbs)
+        {          
+            double start = climb.Interval.StartTime.ToOADate();
+            double end = climb.Interval.EndTime.ToOADate();
+
+            var span = plot.Plot.Add.HorizontalSpan(
+                x1: start,
+                x2: end,
+                color: highlightColor.WithAlpha(0.3)
+            );
+
+            // Guardar referencia al span
+            if (!_climbSpans.ContainsKey(plot))
+            {
+                _climbSpans[plot] = new List<ScottPlot.Plottables.HorizontalSpan>();
+            }
+            _climbSpans[plot].Add(span);
+        }
+
+        plot.Refresh();
+    }
+
+    private static void UpdateIntervalHighlight(AvaPlot plot)
+    {
+        if (plot?.Plot == null)
+        {
+            return;
+        }
+
+        // Limpiar spans existentes de intervalos
+        ClearIntervalSpans(plot);
+
+        var intervals = GetIntervalSource(plot);
+        var showIntervals = GetShowIntervals(plot);
+        var plotColor = GetLineColor(plot);
+        var highlightColor = new ScottPlot.Color(plotColor.R, plotColor.G, plotColor.B, plotColor.A);
+
+        if (!showIntervals || intervals == null || intervals.Count == 0)
+        {
+            plot.Refresh();
+            return;
+        }
+
+        Logger.Debug($"Updating {intervals.Count} interval highlights");
+
+        foreach (Interval interval in intervals)
+        {
+            double start = interval.StartTime.ToOADate();
+            double end = interval.EndTime.ToOADate();
+
+            var span = plot.Plot.Add.HorizontalSpan(
+                x1: start,
+                x2: end,
+                color: highlightColor.WithAlpha(0.3)
+            );
+
+            // Guardar referencia al span
+            if (!_intervalSpans.ContainsKey(plot))
+            {
+                _intervalSpans[plot] = new List<ScottPlot.Plottables.HorizontalSpan>();
+            }
+            _intervalSpans[plot].Add(span);
+        }
+
+        plot.Refresh();
+    }
+
+    /// <summary>
+    /// Limpia los spans de climbs del gráfico
+    /// </summary>
+    private static void ClearClimbSpans(AvaPlot plot)
+    {
+        if (_climbSpans.TryGetValue(plot, out var spans))
+        {
+            foreach (var span in spans)
+            {
+                plot.Plot.Remove(span);
+            }
+            spans.Clear();
+        }
+    }
+
+    /// <summary>
+    /// Limpia los spans de intervalos del gráfico
+    /// </summary>
+    private static void ClearIntervalSpans(AvaPlot plot)
+    {
+        if (_intervalSpans.TryGetValue(plot, out var spans))
+        {
+            foreach (var span in spans)
+            {
+                plot.Plot.Remove(span);
+            }
+            spans.Clear();
+        }
+    }
+
+    /// <summary>
+    /// Limpia todos los spans del gráfico
+    /// </summary>
+    private static void ClearSpans(AvaPlot plot)
+    {
+        ClearClimbSpans(plot);
+        ClearIntervalSpans(plot);
+    }
+
+    /// <summary>
+    /// Limpia todos los datos asociados al plot (útil cuando se destruye el control)
+    /// </summary>
+    public static void CleanupPlot(AvaPlot plot)
+    {
+        ClearSpans(plot);
+        _climbSpans.Remove(plot);
+        _intervalSpans.Remove(plot);
+        _originalLimits.Remove(plot);
+    }
 }
-
-
-

@@ -12,7 +12,7 @@
     </UserControl.DataContext>
 
     <StackPanel Spacing="5" Orientation="Vertical">
-        <TextBlock Text="Zonas:" 
+        <TextBlock Text="Zones:" 
                FontWeight="Bold" 
                Margin="10" />
 

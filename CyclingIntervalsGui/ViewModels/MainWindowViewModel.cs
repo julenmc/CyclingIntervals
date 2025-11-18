@@ -35,6 +35,12 @@ public partial class MainWindowViewModel : ViewModelBase
     private List<Interval>? _intervalsList;
 
     [ObservableProperty]
+    private bool _showClimbs;
+
+    [ObservableProperty]
+    private bool _showIntervals;
+
+    [ObservableProperty]
     private string? _filePath;
 
     public string? FileName => string.IsNullOrEmpty(FilePath)

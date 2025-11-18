@@ -23,6 +23,10 @@
             <avaPlot:AvaPlot Name="AltitudePlot" 
                             Grid.Row="0" 
                             behaviors:PlotUpdateBehavior.DataSource="{Binding AltitudeData}"
+                            behaviors:PlotUpdateBehavior.ClimbSource="{Binding ClimbsList}"
+                            behaviors:PlotUpdateBehavior.ShowClimbs="{Binding ShowClimbs}"
+                            behaviors:PlotUpdateBehavior.IntervalSource="{Binding IntervalsList}"
+                            behaviors:PlotUpdateBehavior.ShowIntervals="{Binding ShowIntervals}"
                             behaviors:PlotUpdateBehavior.LineColor="Black"
                             behaviors:SyncZoomBehavior.IsSynced="True"/>
             
@@ -30,6 +34,10 @@
             <avaPlot:AvaPlot Name="PowerPlot" 
                             Grid.Row="1" 
                             behaviors:PlotUpdateBehavior.DataSource="{Binding PowerData}"
+                            behaviors:PlotUpdateBehavior.ClimbSource="{Binding ClimbsList}"
+                            behaviors:PlotUpdateBehavior.ShowClimbs="{Binding ShowClimbs}"
+                            behaviors:PlotUpdateBehavior.IntervalSource="{Binding IntervalsList}"
+                            behaviors:PlotUpdateBehavior.ShowIntervals="{Binding ShowIntervals}"
                             behaviors:PlotUpdateBehavior.LineColor="DodgerBlue"
                             behaviors:SyncZoomBehavior.IsSynced="True"/>
             
@@ -37,6 +45,10 @@
             <avaPlot:AvaPlot Name="HrPlot" 
                             Grid.Row="2" 
                             behaviors:PlotUpdateBehavior.DataSource="{Binding HrData}"
+                            behaviors:PlotUpdateBehavior.ClimbSource="{Binding ClimbsList}"
+                            behaviors:PlotUpdateBehavior.ShowClimbs="{Binding ShowClimbs}"
+                            behaviors:PlotUpdateBehavior.IntervalSource="{Binding IntervalsList}"
+                            behaviors:PlotUpdateBehavior.ShowIntervals="{Binding ShowIntervals}"
                             behaviors:PlotUpdateBehavior.LineColor="Red"
                             behaviors:SyncZoomBehavior.IsSynced="True"/>
         </Grid>
@@ -47,7 +59,7 @@
                 <!-- File -->
                 <Grid Grid.Row="0" RowDefinitions="Auto,*">
                     <StackPanel Grid.Row="0" Spacing="10" Orientation="Horizontal">
-                        <TextBlock Text="Archivo:" VerticalAlignment="Center" FontWeight="Bold" Margin="10,10,10,10"/>
+                        <TextBlock Text="File:" VerticalAlignment="Center" FontWeight="Bold" Margin="10,10,10,10"/>
                         <TextBlock Text="{Binding FileName}" VerticalAlignment="Center" Foreground="DarkGray" Margin="0,10,10,10"/>
                     </StackPanel>
                     <Button Grid.Row="1" Command="{Binding OpenFileCommand}">
@@ -57,14 +69,20 @@
                 </Grid>
                 <!-- Visualization -->
                 <Grid Grid.Row="1" RowDefinitions="Auto,*">
-                    <StackPanel Grid.Row="0" Spacing="10" Orientation="Horizontal">
-                        <TextBlock Text="Mostrar:" VerticalAlignment="Center" FontWeight="Bold" Margin="10,10,10,10"/>
+                    <StackPanel Grid.Row="0" Spacing="10" Orientation="Vertical">
+                        <TextBlock Text="Show:" VerticalAlignment="Center" FontWeight="Bold" Margin="5,5,5,5"/>
+                        <CheckBox 
+                            IsChecked="{Binding ShowClimbs}"
+                            Content="Climbs"/>
+                        <CheckBox 
+                            IsChecked="{Binding ShowIntervals}"
+                            Content="Intervals"/>
                     </StackPanel>
                 </Grid>
                 <!-- Thresholds -->
                 <Grid Grid.Row="2" RowDefinitions="Auto,*">
                     <StackPanel Grid.Row="0" Spacing="10" Orientation="Horizontal">
-                        <TextBlock Text="Límites:" VerticalAlignment="Center" FontWeight="Bold" Margin="10,10,10,10"/>
+                        <TextBlock Text="Thresholds:" VerticalAlignment="Center" FontWeight="Bold" Margin="10,10,10,10"/>
                     </StackPanel>
                 </Grid>
                 <!-- Zones -->

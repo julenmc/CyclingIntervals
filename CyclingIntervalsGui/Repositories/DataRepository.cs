@@ -54,31 +54,31 @@ public partial class DataRepository : ObservableObject
             {
                 new CyclingTrainer.Core.Models.Zone
                 {
-                    Id = 1, LowLimit = 0, HighLimit = 180,
+                    Id = 1, LowLimit = 0, HighLimit = 136,
                 },
                 new CyclingTrainer.Core.Models.Zone
                 {
-                    Id = 2, LowLimit = 181, HighLimit = 240,
+                    Id = 2, LowLimit = 137, HighLimit = 186,
                 },
                 new CyclingTrainer.Core.Models.Zone
                 {
-                    Id = 3, LowLimit = 241, HighLimit = 290,
+                    Id = 3, LowLimit = 187, HighLimit = 223,
                 },
                 new CyclingTrainer.Core.Models.Zone
                 {
-                    Id = 4, LowLimit = 291, HighLimit = 340,
+                    Id = 4, LowLimit = 224, HighLimit = 260,
                 },
                 new CyclingTrainer.Core.Models.Zone
                 {
-                    Id = 5, LowLimit = 341, HighLimit = 390,
+                    Id = 5, LowLimit = 261, HighLimit = 298,
                 },
                 new CyclingTrainer.Core.Models.Zone
                 {
-                    Id = 6, LowLimit = 391, HighLimit = 460,
+                    Id = 6, LowLimit = 299, HighLimit = 373,
                 },
                 new CyclingTrainer.Core.Models.Zone
                 {
-                    Id = 7, LowLimit = 461, HighLimit = 2000,
+                    Id = 7, LowLimit = 374, HighLimit = 2000,
                 },
             }
         };
