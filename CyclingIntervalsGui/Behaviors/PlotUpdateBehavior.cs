@@ -320,7 +320,7 @@ public class PlotUpdateBehavior
             return;
         }
 
-        Logger.Debug($"Updating {intervals.Count} interval highlights");
+        Logger.Info($"Updating {intervals.Count} interval highlights");
 
         foreach (Interval interval in intervals)
         {

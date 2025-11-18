@@ -15,13 +15,16 @@ public partial class ZonesViewModel : ViewModelBase
     private readonly DataRepository _repository;
 
     [ObservableProperty]
-    private ObservableCollection<Zone> _zones = new(
-        Enumerable.Range(1, 7).Select(i => new Zone { Id = i })
-    );
+    private ObservableCollection<Zone> _zones;
 
     public ZonesViewModel(DataRepository repository)
     {
         _repository = repository;
+        Zones = new ObservableCollection<Zone>();
+        foreach (Zone zone in _repository.Configuration.Zones)
+        {
+            Zones.Add(zone);
+        }
     }
 
     [RelayCommand]
