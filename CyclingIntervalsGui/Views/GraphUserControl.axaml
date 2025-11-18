@@ -1,0 +1,24 @@
+<UserControl xmlns="https://github.com/avaloniaui"      
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:avaPlot="clr-namespace:ScottPlot.Avalonia;assembly=ScottPlot.Avalonia"
+        xmlns:behaviors="using:CyclingIntervalsGui.Behaviors"
+        x:Class="CyclingIntervalsGui.Views.GraphUserControl"
+        xmlns:vm="clr-namespace:CyclingIntervalsGui.ViewModels"
+        x:DataType="vm:GraphViewModel">
+
+    <UserControl.DataContext>
+        <!-- <vm:ZonesViewModel/> -->
+    </UserControl.DataContext>
+
+    <avaPlot:AvaPlot Name="{Binding Name}" 
+                    behaviors:PlotUpdateBehavior.DataSource="{Binding Data}"
+                    behaviors:PlotUpdateBehavior.ClimbSource="{Binding ClimbsList}"
+                    behaviors:PlotUpdateBehavior.ShowClimbs="{Binding ShowClimbs}"
+                    behaviors:PlotUpdateBehavior.IntervalSource="{Binding IntervalsList}"
+                    behaviors:PlotUpdateBehavior.ShowIntervals="{Binding ShowIntervals}"
+                    behaviors:PlotUpdateBehavior.LineColor="{Binding Color}"
+                    behaviors:PlotUpdateBehavior.ShowXAxis="{Binding ShowAxis}"
+                    behaviors:PlotSyncBehavior.IsSynced="True"/>
+</UserControl>

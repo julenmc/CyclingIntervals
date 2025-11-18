@@ -1,9 +1,6 @@
 ﻿using CyclingIntervalsGui.Repositories;
 using CyclingIntervalsGui.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CyclingIntervalsGui.Models;
-using System.ComponentModel;
-using CyclingTrainer.SessionAnalyzer.Models;
 using CommunityToolkit.Mvvm.Input;
 using Avalonia.Controls;
 
@@ -18,21 +15,6 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly DataRepository _repository;
     private readonly AnalyzeService _analyzer;
     private Window? _mainWindow;
-
-    [ObservableProperty]
-    private GraphData? _altitudeData;
-
-    [ObservableProperty]
-    private GraphData? _powerData;
-
-    [ObservableProperty]
-    private GraphData? _hrData;
-
-    [ObservableProperty]
-    private List<ClimbData>? _climbsList;
-
-    [ObservableProperty]
-    private List<Interval>? _intervalsList;
 
     [ObservableProperty]
     private bool _showClimbs;
@@ -51,15 +33,18 @@ public partial class MainWindowViewModel : ViewModelBase
     private bool _isLoading;
 
     public ZonesViewModel ZonesViewModel { get; }
+    public GraphViewModel AltitudeViewModel { get; }
+    public GraphViewModel PowerViewModel { get; }
+    public GraphViewModel HrViewModel { get; }
 
     public MainWindowViewModel()
     {
         _repository = new DataRepository();
         _analyzer = new AnalyzeService(_repository);
         ZonesViewModel = new ZonesViewModel(_repository);
-
-        // Suscribirse a cambios del repositorio para mantener el ViewModel sincronizado
-        _repository.PropertyChanged += OnRepositoryPropertyChanged;
+        AltitudeViewModel = new GraphViewModel(_repository, nameof(DataRepository.AltitudeData), Avalonia.Media.Colors.Black, false, this);
+        PowerViewModel = new GraphViewModel(_repository, nameof(DataRepository.PowerData), Avalonia.Media.Colors.DodgerBlue, false, this);
+        HrViewModel = new GraphViewModel(_repository, nameof(DataRepository.HrData), Avalonia.Media.Colors.Red, true, this);
     }
 
     /// <summary>
@@ -69,32 +54,6 @@ public partial class MainWindowViewModel : ViewModelBase
     public void SetMainWindow(Window mainWindow)
     {
         _mainWindow = mainWindow;
-    }
-
-    /// <summary>
-    /// Maneja cambios en el repositorio y actualiza las propiedades observables del ViewModel.
-    /// Esto asegura que los cambios en los datos se reflejen automáticamente en la vista.
-    /// </summary>
-    private void OnRepositoryPropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        switch (e.PropertyName)
-        {
-            case nameof(DataRepository.AltitudeData):
-                AltitudeData = _repository.AltitudeData;
-                break;
-            case nameof(DataRepository.PowerData):
-                PowerData = _repository.PowerData;
-                break;
-            case nameof(DataRepository.HrData):
-                HrData = _repository.HrData;
-                break;
-            case nameof(DataRepository.ClimbsList):
-                ClimbsList = _repository.ClimbsList;
-                break;
-            case nameof(DataRepository.IntervalsList):
-                IntervalsList = _repository.IntervalsList;
-                break;
-        }
     }
 
     /// <summary>

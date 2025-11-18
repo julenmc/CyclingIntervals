@@ -41,12 +41,6 @@ public class PlotUpdateBehavior
             null,
             false);
 
-    public static readonly AttachedProperty<AvaloniaColor> LineColorProperty =
-        AvaloniaProperty.RegisterAttached<PlotUpdateBehavior, AvaPlot, AvaloniaColor>(
-            "LineColor",
-            AvaloniaColors.Blue,
-            false);
-
     public static readonly AttachedProperty<bool> ShowClimbsProperty =
         AvaloniaProperty.RegisterAttached<PlotUpdateBehavior, AvaPlot, bool>(
             "ShowClimbs",
@@ -56,6 +50,18 @@ public class PlotUpdateBehavior
     public static readonly AttachedProperty<bool> ShowIntervalsProperty =
         AvaloniaProperty.RegisterAttached<PlotUpdateBehavior, AvaPlot, bool>(
             "ShowIntervals",
+            true,
+            false);
+
+    public static readonly AttachedProperty<AvaloniaColor> LineColorProperty =
+        AvaloniaProperty.RegisterAttached<PlotUpdateBehavior, AvaPlot, AvaloniaColor>(
+            "LineColor",
+            AvaloniaColors.Blue,
+            false);
+
+    public static readonly AttachedProperty<bool> ShowXAxisProperty =
+        AvaloniaProperty.RegisterAttached<PlotUpdateBehavior, AvaPlot, bool>(
+            "ShowXAxis",
             true,
             false);
 
@@ -74,6 +80,7 @@ public class PlotUpdateBehavior
         LineColorProperty.Changed.AddClassHandler<AvaPlot>((plot, e) => OnColorChanged(plot, e));
         ShowClimbsProperty.Changed.AddClassHandler<AvaPlot>((plot, e) => OnShowClimbsChanged(plot, e));
         ShowIntervalsProperty.Changed.AddClassHandler<AvaPlot>((plot, e) => OnShowIntervalsChanged(plot, e));
+        ShowXAxisProperty.Changed.AddClassHandler<AvaPlot>((plot, e) => OnShowXAxisChanged(plot, e));
     }
 
     public static GraphData? GetDataSource(AvaPlot plot)
@@ -146,6 +153,16 @@ public class PlotUpdateBehavior
         plot.SetValue(ShowIntervalsProperty, value);
     }
 
+    public static bool GetShowXAxis(AvaPlot plot)
+    {
+        return plot.GetValue(ShowXAxisProperty);
+    }
+
+    public static void SetShowXAxis(AvaPlot plot, bool value)
+    {
+        plot.SetValue(ShowXAxisProperty, value);
+    }
+
     public static (double minX, double maxX, double minY, double maxY)? GetOriginalLimits(AvaPlot plot)
     {
         if (_originalLimits.TryGetValue(plot, out var limits))
@@ -192,6 +209,17 @@ public class PlotUpdateBehavior
     {
         UpdateIntervalHighlight(plot);
     }
+    
+    private static void OnShowXAxisChanged(AvaPlot plot, AvaloniaPropertyChangedEventArgs e)
+    {
+        // Hide axis label and tick
+        if (!GetShowXAxis(plot))
+        {
+            plot.Plot.Axes.Bottom.TickLabelStyle.IsVisible = false;
+            plot.Plot.Axes.Bottom.MajorTickStyle.Length = 0;
+            plot.Plot.Axes.Bottom.MinorTickStyle.Length = 0;
+        }
+    }
 
     public static void UpdatePlot(AvaPlot plot, GraphData? graphData, AvaloniaColor lineColor)
     {
@@ -204,7 +232,7 @@ public class PlotUpdateBehavior
         try
         {
             plot.Plot.Clear();
-            
+
             // Limpiar los diccionarios de spans al hacer Clear
             ClearSpans(plot);
 
@@ -244,6 +272,14 @@ public class PlotUpdateBehavior
                     graphData.MinValue,
                     graphData.MaxValue
                 );
+            }
+
+            // Hide axis label and tick
+            if (!GetShowXAxis(plot))
+            {
+                plot.Plot.Axes.Bottom.TickLabelStyle.IsVisible = false;
+                plot.Plot.Axes.Bottom.MajorTickStyle.Length = 0;
+                plot.Plot.Axes.Bottom.MinorTickStyle.Length = 0;
             }
 
             plot.Refresh();
@@ -320,7 +356,7 @@ public class PlotUpdateBehavior
             return;
         }
 
-        Logger.Info($"Updating {intervals.Count} interval highlights");
+        Logger.Debug($"Updating {intervals.Count} interval highlights");
 
         foreach (Interval interval in intervals)
         {

@@ -99,4 +99,12 @@ public partial class DataRepository : ObservableObject
 
         return config;
     }
+
+    public GraphData? GetDataByName(string name) => name switch
+    {
+        nameof(AltitudeData) => AltitudeData,
+        nameof(PowerData) => PowerData,
+        nameof(HrData) => HrData,
+        _ => null
+    };
 }

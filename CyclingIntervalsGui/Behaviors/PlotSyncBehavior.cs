@@ -8,18 +8,18 @@ namespace CyclingIntervalsGui.Behaviors;
 /// Mantiene los ejes verticales fijos mientras permite pan/zoom horizontal sincronizado.
 /// Bloquea zoom vertical y establece límites máximos de zoom-out.
 /// </summary>
-public class SyncZoomBehavior
+public class PlotSyncBehavior
 {
     private static readonly List<AvaPlot> _linkedPlots = new();
     private static bool _isUpdating = false;
 
     public static readonly AttachedProperty<bool> IsSyncedProperty =
-        AvaloniaProperty.RegisterAttached<SyncZoomBehavior, AvaPlot, bool>(
+        AvaloniaProperty.RegisterAttached<PlotSyncBehavior, AvaPlot, bool>(
             "IsSynced",
             false,
             false);
 
-    static SyncZoomBehavior()
+    static PlotSyncBehavior()
     {
         IsSyncedProperty.Changed.AddClassHandler<AvaPlot>((plot, e) => OnSyncedChanged(plot, e));
     }
