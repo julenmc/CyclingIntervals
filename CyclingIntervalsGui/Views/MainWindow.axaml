@@ -18,13 +18,16 @@
 
     <Grid ColumnDefinitions="4*,*">
         <!-- Graphs with synchronized zoom -->
-        <Grid Grid.Column="0" RowDefinitions="*,*,*">
+        <Grid Grid.Column="0" RowDefinitions="*,*,*,*">
             <views:GraphUserControl Grid.Row="0" 
                     DataContext="{Binding AltitudeViewModel}"/>
             <views:GraphUserControl Grid.Row="1" 
                     DataContext="{Binding PowerViewModel}"/>
             <views:GraphUserControl Grid.Row="2" 
                     DataContext="{Binding HrViewModel}"/>
+            <views:IntervalsUserControl Grid.Row="3"
+                    RectangleClickedCommand="{Binding HandleRectangleClickCommand}"
+                    DataContext="{Binding IntervalsViewModel}"/>  
         </Grid>
 
         <!-- Configuration grid -->

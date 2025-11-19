@@ -83,6 +83,11 @@ public class PlotUpdateBehavior
         ShowXAxisProperty.Changed.AddClassHandler<AvaPlot>((plot, e) => OnShowXAxisChanged(plot, e));
     }
 
+    // public static void HandleIntervalClick(ScottPlot.Plottables.Rectangle rectangle)
+    // {
+    //     foreach ()
+    // }
+
     public static GraphData? GetDataSource(AvaPlot plot)
     {
         return plot.GetValue(DataSourceProperty);
@@ -172,6 +177,11 @@ public class PlotUpdateBehavior
         return null;
     }
 
+    public static void SetOriginalLimitsForIntervals(AvaPlot plot, double minX, double maxX, double minY, double maxY)
+    {
+        _originalLimits[plot] = (minX, maxX, minY, maxY);
+    }
+
     private static void OnDataSourceChanged(AvaPlot plot, AvaloniaPropertyChangedEventArgs e)
     {
         var graphData = GetDataSource(plot);
@@ -221,7 +231,7 @@ public class PlotUpdateBehavior
         }
     }
 
-    public static void UpdatePlot(AvaPlot plot, GraphData? graphData, AvaloniaColor lineColor)
+    private static void UpdatePlot(AvaPlot plot, GraphData? graphData, AvaloniaColor lineColor)
     {
         if (plot?.Plot == null || graphData?.Values == null || graphData.Values.Count == 0)
         {
