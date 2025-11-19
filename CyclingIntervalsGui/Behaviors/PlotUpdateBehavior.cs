@@ -5,6 +5,7 @@ using AvaloniaColor = Avalonia.Media.Color;
 using AvaloniaColors = Avalonia.Media.Colors;
 using NLog;
 using CyclingTrainer.SessionAnalyzer.Models;
+using System.Collections.ObjectModel;
 
 namespace CyclingIntervalsGui.Behaviors;
 
@@ -29,15 +30,9 @@ public class PlotUpdateBehavior
             null,
             false);
 
-    public static readonly AttachedProperty<List<Interval>?> IntervalSourceProperty =
-        AvaloniaProperty.RegisterAttached<PlotUpdateBehavior, AvaPlot, List<Interval>?>(
+    public static readonly AttachedProperty<ObservableCollection<Interval>?> IntervalSourceProperty =
+        AvaloniaProperty.RegisterAttached<PlotUpdateBehavior, AvaPlot, ObservableCollection<Interval>?>(
             "IntervalSource",
-            null,
-            false);
-
-    public static readonly AttachedProperty<UIConfiguration?> UiConfig =
-        AvaloniaProperty.RegisterAttached<PlotUpdateBehavior, AvaPlot, UIConfiguration?>(
-            "PlotConfig",
             null,
             false);
 
@@ -47,16 +42,10 @@ public class PlotUpdateBehavior
             true,
             false);
 
-    public static readonly AttachedProperty<bool> ShowIntervalsProperty =
-        AvaloniaProperty.RegisterAttached<PlotUpdateBehavior, AvaPlot, bool>(
-            "ShowIntervals",
-            true,
-            false);
-
     public static readonly AttachedProperty<AvaloniaColor> LineColorProperty =
         AvaloniaProperty.RegisterAttached<PlotUpdateBehavior, AvaPlot, AvaloniaColor>(
             "LineColor",
-            AvaloniaColors.Blue,
+            AvaloniaColors.Black,
             false);
 
     public static readonly AttachedProperty<bool> ShowXAxisProperty =
@@ -71,6 +60,9 @@ public class PlotUpdateBehavior
     // Diccionario para almacenar los spans de cada gráfico
     private static readonly Dictionary<AvaPlot, List<ScottPlot.Plottables.HorizontalSpan>> _climbSpans = new();
     private static readonly Dictionary<AvaPlot, List<ScottPlot.Plottables.HorizontalSpan>> _intervalSpans = new();
+    
+    // Diccionario para rastrear los listeners de CollectionChanged de intervals
+    private static readonly Dictionary<AvaPlot, System.Collections.Specialized.NotifyCollectionChangedEventHandler> _intervalCollectionListeners = new();
 
     static PlotUpdateBehavior()
     {
@@ -79,7 +71,6 @@ public class PlotUpdateBehavior
         IntervalSourceProperty.Changed.AddClassHandler<AvaPlot>((plot, e) => OnIntervalsChanged(plot, e));
         LineColorProperty.Changed.AddClassHandler<AvaPlot>((plot, e) => OnColorChanged(plot, e));
         ShowClimbsProperty.Changed.AddClassHandler<AvaPlot>((plot, e) => OnShowClimbsChanged(plot, e));
-        ShowIntervalsProperty.Changed.AddClassHandler<AvaPlot>((plot, e) => OnShowIntervalsChanged(plot, e));
         ShowXAxisProperty.Changed.AddClassHandler<AvaPlot>((plot, e) => OnShowXAxisChanged(plot, e));
     }
 
@@ -103,12 +94,12 @@ public class PlotUpdateBehavior
         plot.SetValue(ClimbSourceProperty, value);
     }
 
-    public static List<Interval>? GetIntervalSource(AvaPlot plot)
+    public static ObservableCollection<Interval>? GetIntervalSource(AvaPlot plot)
     {
         return plot.GetValue(IntervalSourceProperty);
     }
 
-    public static void SetIntervalSource(AvaPlot plot, List<Interval>? value)
+    public static void SetIntervalSource(AvaPlot plot, ObservableCollection<Interval>? value)
     {
         plot.SetValue(IntervalSourceProperty, value);
     }
@@ -116,16 +107,6 @@ public class PlotUpdateBehavior
     public static void SetDataSource(AvaPlot plot, GraphData? value)
     {
         plot.SetValue(DataSourceProperty, value);
-    }
-
-    public static UIConfiguration? GetPlotConfig(AvaPlot plot)
-    {
-        return plot.GetValue(UiConfig);
-    }
-
-    public static void SetPlotConfig(AvaPlot plot, UIConfiguration? value)
-    {
-        plot.SetValue(UiConfig, value);
     }
 
     public static AvaloniaColor GetLineColor(AvaPlot plot)
@@ -146,16 +127,6 @@ public class PlotUpdateBehavior
     public static void SetShowClimbs(AvaPlot plot, bool value)
     {
         plot.SetValue(ShowClimbsProperty, value);
-    }
-
-    public static bool GetShowIntervals(AvaPlot plot)
-    {
-        return plot.GetValue(ShowIntervalsProperty);
-    }
-
-    public static void SetShowIntervals(AvaPlot plot, bool value)
-    {
-        plot.SetValue(ShowIntervalsProperty, value);
     }
 
     public static bool GetShowXAxis(AvaPlot plot)
@@ -198,6 +169,30 @@ public class PlotUpdateBehavior
 
     private static void OnIntervalsChanged(AvaPlot plot, AvaloniaPropertyChangedEventArgs e)
     {
+        // Remover listener anterior si existe
+        if (_intervalCollectionListeners.TryGetValue(plot, out var oldListener))
+        {
+            var oldCollection = e.OldValue as ObservableCollection<Interval>;
+            if (oldCollection != null)
+            {
+                oldCollection.CollectionChanged -= oldListener;
+            }
+        }
+
+        var newCollection = e.NewValue as ObservableCollection<Interval>;
+        if (newCollection != null)
+        {
+            // Crear nuevo listener
+            System.Collections.Specialized.NotifyCollectionChangedEventHandler newListener = 
+                (sender, args) => UpdateIntervalHighlight(plot);
+            
+            // Guardar listener para poder removerlo después
+            _intervalCollectionListeners[plot] = newListener;
+            
+            // Suscribirse a cambios en la colección
+            newCollection.CollectionChanged += newListener;
+        }
+
         UpdateIntervalHighlight(plot);
     }
 
@@ -213,11 +208,6 @@ public class PlotUpdateBehavior
     private static void OnShowClimbsChanged(AvaPlot plot, AvaloniaPropertyChangedEventArgs e)
     {
         UpdateClimbHighlight(plot);
-    }
-
-    private static void OnShowIntervalsChanged(AvaPlot plot, AvaloniaPropertyChangedEventArgs e)
-    {
-        UpdateIntervalHighlight(plot);
     }
     
     private static void OnShowXAxisChanged(AvaPlot plot, AvaloniaPropertyChangedEventArgs e)
@@ -356,11 +346,10 @@ public class PlotUpdateBehavior
         ClearIntervalSpans(plot);
 
         var intervals = GetIntervalSource(plot);
-        var showIntervals = GetShowIntervals(plot);
         var plotColor = GetLineColor(plot);
         var highlightColor = new ScottPlot.Color(plotColor.R, plotColor.G, plotColor.B, plotColor.A);
 
-        if (!showIntervals || intervals == null || intervals.Count == 0)
+        if (intervals == null || intervals.Count == 0)
         {
             plot.Refresh();
             return;

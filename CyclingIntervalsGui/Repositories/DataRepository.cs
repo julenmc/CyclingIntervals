@@ -1,3 +1,5 @@
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CyclingIntervalsGui.Models;
 using CyclingTrainer.SessionAnalyzer.Models;
@@ -26,21 +28,20 @@ public partial class DataRepository : ObservableObject
     private List<Interval>? _intervalsList;
 
     [ObservableProperty]
+    private ObservableCollection<Interval> _plottableIntervals;
+
+    [ObservableProperty]
     private AnalyzeConfig _configuration;
 
     [ObservableProperty]
-    private UIConfiguration? _uiConfiguration;
+    private bool _showClimbs;
 
     /// <summary>
     /// Repository's constructor, used to initialize configuration with default values
     /// </summary>
     public DataRepository()
     {
-        _uiConfiguration = new UIConfiguration
-        {
-            ShowClimbs = true,
-            ShowIntervals = true
-        };
+        _showClimbs = false;
 
         _configuration = new AnalyzeConfig
         {
@@ -82,6 +83,14 @@ public partial class DataRepository : ObservableObject
                 },
             }
         };
+
+        _plottableIntervals = new ObservableCollection<Interval>();
+        
+        // Escuchar cambios en la colección para disparar PropertyChanged
+        _plottableIntervals.CollectionChanged += (sender, e) =>
+        {
+            OnPropertyChanged(nameof(PlottableIntervals));
+        };
     }
 
     public AnalyzeConfig CopyConfig()
@@ -99,12 +108,4 @@ public partial class DataRepository : ObservableObject
 
         return config;
     }
-
-    public GraphData? GetDataByName(string name) => name switch
-    {
-        nameof(AltitudeData) => AltitudeData,
-        nameof(PowerData) => PowerData,
-        nameof(HrData) => HrData,
-        _ => null
-    };
 }

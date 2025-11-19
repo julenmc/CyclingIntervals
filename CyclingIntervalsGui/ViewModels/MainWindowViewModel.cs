@@ -40,9 +40,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private bool _isLoading;
 
     public ZonesViewModel ZonesViewModel { get; }
-    public GraphViewModel AltitudeViewModel { get; }
-    public GraphViewModel PowerViewModel { get; }
-    public GraphViewModel HrViewModel { get; }
+    public GraphViewModel GraphViewModel { get; }
     public IntervalsViewModel IntervalsViewModel { get; }
     
     public MainWindowViewModel()
@@ -50,9 +48,7 @@ public partial class MainWindowViewModel : ViewModelBase
         _repository = new DataRepository();
         _analyzer = new AnalyzeService(_repository);
         ZonesViewModel = new ZonesViewModel(_repository);
-        AltitudeViewModel = new GraphViewModel(_repository, nameof(DataRepository.AltitudeData), Avalonia.Media.Colors.Black, false, this);
-        PowerViewModel = new GraphViewModel(_repository, nameof(DataRepository.PowerData), Avalonia.Media.Colors.DodgerBlue, false, this);
-        HrViewModel = new GraphViewModel(_repository, nameof(DataRepository.HrData), Avalonia.Media.Colors.Red, true, this);
+        GraphViewModel = new GraphViewModel(_repository, this);
         IntervalsViewModel = new IntervalsViewModel(_repository);
 
         // Suscribirse a cambios del repositorio para mantener el ViewModel sincronizado

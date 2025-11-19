@@ -5,6 +5,7 @@
         xmlns:avaPlot="clr-namespace:ScottPlot.Avalonia;assembly=ScottPlot.Avalonia"
         xmlns:behaviors="using:CyclingIntervalsGui.Behaviors"
         x:Class="CyclingIntervalsGui.Views.GraphUserControl"
+        x:Name="Root"
         xmlns:vm="clr-namespace:CyclingIntervalsGui.ViewModels"
         x:DataType="vm:GraphViewModel">
 
@@ -12,13 +13,12 @@
         <!-- <vm:ZonesViewModel/> -->
     </UserControl.DataContext>
 
-    <avaPlot:AvaPlot Name="{Binding Name}" 
-                    behaviors:PlotUpdateBehavior.DataSource="{Binding Data}"
+    <avaPlot:AvaPlot x:Name="Graph" 
+                    behaviors:PlotUpdateBehavior.DataSource="{Binding Data, ElementName=Root}"
                     behaviors:PlotUpdateBehavior.ClimbSource="{Binding ClimbsList}"
                     behaviors:PlotUpdateBehavior.ShowClimbs="{Binding ShowClimbs}"
                     behaviors:PlotUpdateBehavior.IntervalSource="{Binding IntervalsList}"
-                    behaviors:PlotUpdateBehavior.ShowIntervals="{Binding ShowIntervals}"
-                    behaviors:PlotUpdateBehavior.LineColor="{Binding Color}"
-                    behaviors:PlotUpdateBehavior.ShowXAxis="{Binding ShowAxis}"
+                    behaviors:PlotUpdateBehavior.LineColor="{Binding PlotColor, ElementName=Root}"
+                    behaviors:PlotUpdateBehavior.ShowXAxis="{Binding ShowAxis, ElementName=Root}"
                     behaviors:PlotSyncBehavior.IsSynced="True"/>
 </UserControl>

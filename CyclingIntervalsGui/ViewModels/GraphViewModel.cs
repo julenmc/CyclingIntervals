@@ -17,52 +17,45 @@ public partial class GraphViewModel : ViewModelBase
     private readonly DataRepository _repository;
 
     [ObservableProperty]
-    private GraphData? _data;
+    private GraphData? _altitudeData;
 
     [ObservableProperty]
-    private string _name;
+    private GraphData? _hrData;
 
     [ObservableProperty]
-    private AvaloniaColor _color;
-
-    [ObservableProperty]
-    private bool _showAxis;
+    private GraphData? _powerData;
 
     [ObservableProperty]
     private List<ClimbData>? _climbsList;
 
     [ObservableProperty]
-    private List<Interval>? _intervalsList;
+    private ObservableCollection<Interval> _intervalsList;
 
     private readonly MainWindowViewModel _parent;
 
     [ObservableProperty]
     private bool _showClimbs;
 
-    [ObservableProperty]
-    private bool _showIntervals;
-
     public GraphViewModel(DataRepository repository,
-                            string name,
-                            AvaloniaColor color,
-                            bool showAxis,
                             MainWindowViewModel parent)
     {
         _repository = repository;
-        Name = name;
-        Color = color;
-        ShowAxis = showAxis;
         _parent = parent;
 
         // Inicializar propiedades observables desde el padre
         ShowClimbs = _parent.ShowClimbs;
-        ShowIntervals = _parent.ShowIntervals;
 
         // Suscribirse a cambios del repositorio para mantener el ViewModel sincronizado
         _repository.PropertyChanged += OnRepositoryPropertyChanged;
 
         // Suscribirse a cambios del padre para mantener sincronizadas las propiedades
         _parent.PropertyChanged += OnParentPropertyChanged;
+
+        _intervalsList = new ObservableCollection<Interval>();
+        _intervalsList.CollectionChanged += (sender, e) =>
+        {
+            OnPropertyChanged(nameof(IntervalsList));
+        };
     }
 
     private void OnParentPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -72,29 +65,49 @@ public partial class GraphViewModel : ViewModelBase
             case nameof(MainWindowViewModel.ShowClimbs):
                 ShowClimbs = _parent.ShowClimbs;
                 break;
-            case nameof(MainWindowViewModel.ShowIntervals):
-                ShowIntervals = _parent.ShowIntervals;
-                break;
         }
     }
 
     private void OnRepositoryPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == Name)
+        switch (e.PropertyName)
         {
-            Data = _repository.GetDataByName(Name);
+            case nameof(DataRepository.AltitudeData):
+                AltitudeData = _repository.AltitudeData;
+                break;
+            case nameof(DataRepository.PowerData):
+                PowerData = _repository.PowerData;
+                break;
+            case nameof(DataRepository.HrData):
+                HrData = _repository.HrData;
+                break;
+            case nameof(DataRepository.ClimbsList):
+                ClimbsList = _repository.ClimbsList;
+                break;
+            case nameof(DataRepository.PlottableIntervals):
+                // Sincronizar contenido sin reemplazar la referencia
+                SyncIntervals();
+                break;
         }
-        else
+    }
+
+    private void SyncIntervals()
+    {
+        var repositoryIntervals = _repository.PlottableIntervals;
+        
+        // Si es la primera vez, inicializar la colección
+        if (IntervalsList == null)
         {
-            switch (e.PropertyName)
-            {
-                case nameof(DataRepository.ClimbsList):
-                    ClimbsList = _repository.ClimbsList;
-                    break;
-                case nameof(DataRepository.IntervalsList):
-                    IntervalsList = _repository.IntervalsList;
-                    break;
-            }
+            IntervalsList = new ObservableCollection<Interval>(repositoryIntervals);
+            return;
+        }
+
+        // Sincronizar el contenido sin reemplazar la referencia
+        // Esto mantiene viva la suscripción a CollectionChanged
+        IntervalsList.Clear();
+        foreach (var interval in repositoryIntervals)
+        {
+            IntervalsList.Add(interval);
         }
     }
 }
