@@ -7,7 +7,6 @@ using CyclingTrainer.SessionAnalyzer.Models;
 using System.ComponentModel;
 using System.Collections.ObjectModel;
 using CyclingIntervalsGui.Models;
-using CyclingIntervalsGui.Behaviors;
 
 namespace CyclingIntervalsGui.ViewModels;
 

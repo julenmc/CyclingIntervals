@@ -12,13 +12,35 @@
     <UserControl.DataContext>
         <!-- <vm:ZonesViewModel/> -->
     </UserControl.DataContext>
+    <Grid>
+        <avaPlot:AvaPlot x:Name="Graph" 
+                        behaviors:PlotUpdateBehavior.DataSource="{Binding Data, ElementName=Root}"
+                        behaviors:PlotUpdateBehavior.ClimbSource="{Binding ClimbsList}"
+                        behaviors:PlotUpdateBehavior.ShowClimbs="{Binding ShowClimbs}"
+                        behaviors:PlotUpdateBehavior.IntervalSource="{Binding IntervalsList}"
+                        behaviors:PlotUpdateBehavior.LineColor="{Binding PlotColor, ElementName=Root}"
+                        behaviors:PlotUpdateBehavior.ShowXAxis="{Binding ShowAxis, ElementName=Root}"
+                        behaviors:PlotSyncBehavior.IsSynced="True"/>
 
-    <avaPlot:AvaPlot x:Name="Graph" 
-                    behaviors:PlotUpdateBehavior.DataSource="{Binding Data, ElementName=Root}"
-                    behaviors:PlotUpdateBehavior.ClimbSource="{Binding ClimbsList}"
-                    behaviors:PlotUpdateBehavior.ShowClimbs="{Binding ShowClimbs}"
-                    behaviors:PlotUpdateBehavior.IntervalSource="{Binding IntervalsList}"
-                    behaviors:PlotUpdateBehavior.LineColor="{Binding PlotColor, ElementName=Root}"
-                    behaviors:PlotUpdateBehavior.ShowXAxis="{Binding ShowAxis, ElementName=Root}"
-                    behaviors:PlotSyncBehavior.IsSynced="True"/>
+        <Popup x:Name="IntervalInfoPopup"
+                Placement="Pointer"
+                IsLightDismissEnabled="False">
+            <Border Background="Gray" Padding="8" CornerRadius="6">
+                <StackPanel>
+                    <TextBlock x:Name="IntervalPopupTitle" FontWeight="Bold"/>
+                    <TextBlock x:Name="IntervalPopupDetails"/>
+                </StackPanel>
+            </Border>
+        </Popup>
+        <Popup x:Name="ClimbInfoPopup"
+                Placement="Pointer"
+                IsLightDismissEnabled="False">
+            <Border Background="Gray" Padding="8" CornerRadius="6">
+                <StackPanel>
+                    <TextBlock x:Name="ClimbPopupTitle" FontWeight="Bold"/>
+                    <TextBlock x:Name="ClimbPopupDetails"/>
+                </StackPanel>
+            </Border>
+        </Popup>
+    </Grid>
 </UserControl>
