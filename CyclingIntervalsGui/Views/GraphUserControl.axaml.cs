@@ -85,7 +85,7 @@ public partial class GraphUserControl : UserControl
         {
             if (intervalInfoPopup.IsOpen)
             {
-                Logger.Info("Closing interval popup");
+                Logger.Debug("Closing interval popup");
                 intervalInfoPopup.IsOpen = false;
             }
         }
@@ -96,7 +96,7 @@ public partial class GraphUserControl : UserControl
         {
             if (climbInfoPopup.IsOpen)
             {
-                Logger.Info("Closing climb popup");
+                Logger.Debug("Closing climb popup");
                 climbInfoPopup.IsOpen = false;
             }
         }
@@ -148,7 +148,7 @@ public partial class GraphUserControl : UserControl
         popupDetails.Text = $"Time: {time.ToString(@"mm\:ss")} ({info.StartTime.TimeOfDay}-{info.EndTime.TimeOfDay})\r\nAvrPower: {info.AveragePower.ToString("0.0")} W";
         infoPopup.PlacementTarget = graph;
         infoPopup.IsOpen = true;
-        Logger.Info("Showing interval popup");
+        Logger.Debug("Showing interval popup");
     }
 
     private static Interval? FindInterval(IEnumerable<Interval> intervals, ScottPlot.Plottables.HorizontalSpan span)
@@ -205,7 +205,7 @@ public partial class GraphUserControl : UserControl
                             $"AvrPower: {info.Interval.AveragePower.ToString("0.0")} W";
         infoPopup.PlacementTarget = graph;
         infoPopup.IsOpen = true;
-        Logger.Info("Showing climb popup");
+        Logger.Debug("Showing climb popup");
     }
 
     private static ClimbData? FindClimb(IEnumerable<ClimbData> climbs, ScottPlot.Plottables.HorizontalSpan span)
