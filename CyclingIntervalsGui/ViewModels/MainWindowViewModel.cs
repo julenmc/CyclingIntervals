@@ -1,11 +1,13 @@
 ﻿using CyclingIntervalsGui.Repositories;
 using CyclingIntervalsGui.Services;
+using CyclingTrainer.SessionAnalyzer.Constants;
 using CyclingTrainer.SessionAnalyzer.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.ComponentModel;
 using Avalonia.Controls;
-using System.Windows.Input;
+using CyclingIntervalsGui.Models;
+using System.Timers;
 
 namespace CyclingIntervalsGui.ViewModels;
 
@@ -19,18 +21,37 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly DataRepository _repository;
     private readonly AnalyzeService _analyzer;
     private Window? _mainWindow;
+    
+    private double _pendingAnalyzeConfigValue;
+    private System.Timers.Timer? _debounceTimer;
+    private const int DebounceDelayMs = 500;
 
     [ObservableProperty]
     private bool _showClimbs;
-
-    [ObservableProperty]
-    private bool _showIntervals;
 
     [ObservableProperty]
     private List<Interval>? _intervalsList;
 
     [ObservableProperty]
     private string? _filePath;
+
+    private double _analyzeConfigValue;
+    public double AnalyzeConfigValue
+    {
+        get => _analyzeConfigValue;
+        set
+        {
+            _analyzeConfigValue = value;
+            _pendingAnalyzeConfigValue = value;
+            
+            // Reinicia el timer cada vez que el usuario mueve el slider
+            _debounceTimer?.Stop();
+            _debounceTimer = new System.Timers.Timer(DebounceDelayMs);
+            _debounceTimer.AutoReset = false;
+            _debounceTimer.Elapsed += (sender, args) => ApplyAnalyzeConfigValue();
+            _debounceTimer.Start();
+        }
+    }
 
     public string? FileName => string.IsNullOrEmpty(FilePath)
         ? null
@@ -62,6 +83,8 @@ public partial class MainWindowViewModel : ViewModelBase
     public void SetMainWindow(Window mainWindow)
     {
         _mainWindow = mainWindow;
+
+        AnalyzeConfigValue = 35;
     }
 
     /// <summary>
@@ -76,6 +99,43 @@ public partial class MainWindowViewModel : ViewModelBase
                 IntervalsList = _repository.IntervalsList;
                 break;
         }
+    }
+
+    /// <summary>
+    /// Aplica el valor pendiente de AnalyzeConfigValue después del debounce.
+    /// Este método se ejecuta en el hilo del timer, por lo que realiza los cálculos
+    /// después de que el usuario deja de mover el slider.
+    /// </summary>
+    private void ApplyAnalyzeConfigValue()
+    {
+        AnalyzeConfig copy = _repository.Configuration.Copy();
+        copy.Thresholds = SetThresholds();
+        _repository.Configuration = copy;
+    }
+
+    private IntervalGroupThresholds SetThresholds()
+    {
+        double per = _pendingAnalyzeConfigValue / 100;
+        IntervalGroupThresholds thresholds = new();
+        thresholds.Short = CalculateThresholds(IntervalSearchValues.ShortIntervals.Max, IntervalSearchValues.ShortIntervals.Min, (float)per);
+        thresholds.Medium = CalculateThresholds(IntervalSearchValues.MediumIntervals.Max, IntervalSearchValues.MediumIntervals.Min, (float)per);
+        thresholds.Long = CalculateThresholds(IntervalSearchValues.LongIntervals.Max, IntervalSearchValues.LongIntervals.Min, (float)per);
+        return thresholds;
+    }
+
+    private static Thresholds CalculateThresholds(Thresholds max, Thresholds min, float per)
+    {
+        float CalculateValue(float max, float min, float per)
+        {
+            return (max - min) * per + min;
+        }
+        Thresholds thresholds = new();
+        thresholds.CvStart = CalculateValue(max.CvStart, min.CvStart, per);
+        thresholds.CvFollow = CalculateValue(max.CvFollow, min.CvFollow, per);
+        thresholds.Range = CalculateValue(max.Range, min.Range, per);
+        thresholds.MaRel = CalculateValue(max.MaRel, min.MaRel, per);
+
+        return thresholds;
     }
 
     /// <summary>
